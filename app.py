@@ -19,7 +19,7 @@ print(Base.classes.keys())
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-#session = Session(engine)
+
 
 
 app = Flask(__name__)
@@ -33,12 +33,12 @@ app = Flask(__name__)
 def home():
     return (
         f"Trip to Hawaii! <br/>"
-        f"Available Routes:<br/>"
-        f"/api/v1.0/precipitation"
-        f"/api/v1.0/stations"
-        f"/api/v1.0/tobs"
-        f"/api/v1.0/<start>"
-        f"/api/v1.0/<start>/<end>"
+        f"Available Routes: <br/>"
+        f"/api/v1.0/precipitation <br/>"
+        f"/api/v1.0/stations <br/>"
+        f"/api/v1.0/tobs <br/>"
+        f"/api/v1.0/<start> <br/>"
+        f"/api/v1.0/<start>/<end> <br/>"
     )
 
 #Convert the query results to a dictionary using date as the key and prcp as the value.
@@ -46,16 +46,20 @@ def home():
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
+    session = Session(engine)
     results = session.query(Measurement.date, func.avg(Measurement.prcp)).\
         filter(Measurement.date >= '2016-08-23').\
         group_by(Measurement.date).all()
+    session.close()
     return jsonify(results)
 
 #Return a JSON list of stations from the dataset.
 
 @app.route("/api/v1.0/stations")
 def stations():
+    session = Session(engine)
     results2 = session.query(Station.station, Station.name).all()
+    session.close()
     return jsonify(results2)
 
 
@@ -64,7 +68,9 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def tobs():
+    session = Session(engine)
     results3 = session.query(Measurement.date, Measurement.station, Measurement.tobs).filter(Measurement.date >= '2016-08-23').all()
+    session.close()
     return jsonify(results3)
 
 
@@ -74,12 +80,16 @@ def tobs():
 
 @app.route("/api/v1.0/<date>")
 def start(date):
+    session = Session(engine)
     results4 = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= date).all()
+    session.close()
     return jsonify(results4)
 
 @app.route("/api/v1.0/<start>/<end>")
 def startDateEnd(start,end):
+    session = Session(engine)
     results5 = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+    session.close()
     return jsonify(results5)
 
 if __name__ == "__main__":
